@@ -85,7 +85,6 @@ export const exportLogs = async (req, res) => {
       res.attachment('email-logs.csv');
       res.send(csv);
     } else {
-      // Return JSON for Excel processing on frontend
       res.json({ logs });
     }
 

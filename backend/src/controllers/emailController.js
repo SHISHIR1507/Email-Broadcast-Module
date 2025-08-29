@@ -4,7 +4,6 @@ export const sendBroadcast = async (req, res) => {
   try {
     const { subject, bodyContent, recipients } = req.body;
 
-    // Validation
     if (!subject || !bodyContent || !recipients || !Array.isArray(recipients)) {
       return res.status(400).json({
         message: 'Subject, body content, and recipients array are required'
@@ -17,7 +16,7 @@ export const sendBroadcast = async (req, res) => {
       });
     }
 
-    // Validate email addresses
+  
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const invalidEmails = recipients.filter(email => !emailRegex.test(email));
     
@@ -28,7 +27,6 @@ export const sendBroadcast = async (req, res) => {
       });
     }
 
-    // Send emails
     const results = await emailService.sendBroadcast(subject, bodyContent, recipients);
     
     const successCount = results.filter(r => r.status === 'sent').length;

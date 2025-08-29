@@ -28,7 +28,7 @@ class EmailService {
   }
 
   async sendBroadcast(subject, bodyContent, recipients) {
-    const transporter = this.getTransporter(); // This will create transporter when needed
+    const transporter = this.getTransporter(); 
     const results = [];
     
     for (const recipient of recipients) {
