@@ -1,19 +1,34 @@
-
 import nodemailer from 'nodemailer';
 import EmailLog from '../models/emailLog.js';
 
 class EmailService {
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS 
+    this.transporter = null;
+  }
+
+  getTransporter() {
+    if (!this.transporter) {
+      console.log('Creating transporter with:');
+      console.log('EMAIL_USER:', process.env.EMAIL_USER);
+      console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? 'Set' : 'Not set');
+      
+      if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        throw new Error('EMAIL_USER and EMAIL_PASS environment variables are required');
       }
-    });
+      
+      this.transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS 
+        }
+      });
+    }
+    return this.transporter;
   }
 
   async sendBroadcast(subject, bodyContent, recipients) {
+    const transporter = this.getTransporter(); // This will create transporter when needed
     const results = [];
     
     for (const recipient of recipients) {
@@ -25,7 +40,7 @@ class EmailService {
           html: bodyContent
         };
 
-        await this.transporter.sendMail(mailOptions);
+        await transporter.sendMail(mailOptions);
         
         const log = await EmailLog.create({
           subject,
@@ -39,7 +54,6 @@ class EmailService {
       } catch (error) {
         console.error(`Failed to send email to ${recipient}:`, error);
         
-        // Log failed delivery
         const log = await EmailLog.create({
           subject,
           bodyContent,
@@ -63,7 +77,8 @@ class EmailService {
 
   async testConnection() {
     try {
-      await this.transporter.verify();
+      const transporter = this.getTransporter();
+      await transporter.verify();
       return true;
     } catch (error) {
       console.error('Email service connection failed:', error);
